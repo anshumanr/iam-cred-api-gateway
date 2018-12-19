@@ -128,6 +128,65 @@
 			});
 		}
 	  </script>
+	  <script type="text/javascript">
+		(function() {
+			// Create a new signer
+			var config = {
+				// AWS Region (default: 'eu-west-1')
+				region: 'us-east-2',
+				// AWS service that is called (default: 'execute-api' -- AWS API Gateway)
+				service: 'execute-api',
+				// AWS IAM credentials, here some temporary credentials with a session token
+				accessKeyId: getCookie('aki'),
+				secretAccessKey: getCookie('aks'),
+				sessionToken: getCookie('token')
+			};
+			var signer = new awsSignWeb.AwsSigner(config);
+
+			// Sign a request
+			var signRequest = {
+				method: 'GET',
+				url: 'https://kduk45oz45.execute-api.us-east-2.amazonaws.com/POC/acc/12/dept/34',
+				headers: {
+					'Content-Type': 'application/json',
+					'Access-Control-Allow-Origin': '*'
+				},
+				params: {
+					//'username': 'nobody'
+				},
+				data: null
+			};
+			var signed = signer.sign(signRequest);
+			console.log(signed);
+
+			var request = new XMLHttpRequest();
+			request.open('GET', 'https://kduk45oz45.execute-api.us-east-2.amazonaws.com/POC/acc/12/dept/34', true);
+			request.setRequestHeader('Authorization', signed['Authorization']);
+			request.setRequestHeader('Accept', signed['Accept']);
+			request.setRequestHeader('Content-Type', signed['Content-Type']);
+			request.setRequestHeader('x-amz-date', signed['x-amz-date']);
+			request.setRequestHeader('x-amz-security-token', signed['x-amz-security-token']);
+			request.setRequestHeader('Access-Control-Allow-Origin', '*');
+			request.send();
+
+		})();
+
+		function getCookie(cname) {
+			var name = cname + "=";
+			var decodedCookie = decodeURIComponent(document.cookie);
+			var ca = decodedCookie.split(';');
+			for(var i = 0; i <ca.length; i++) {
+				var c = ca[i];
+				while (c.charAt(0) == ' ') {
+					c = c.substring(1);
+				}
+				if (c.indexOf(name) == 0) {
+					return c.substring(name.length, c.length);
+				}
+			}
+			return "";
+		}
+	</script>
     </p>
     <p id="results"> 
     </p>
