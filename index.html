@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.7.21.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <head>
+    <link href='http://fonts.googleapis.com/css?family=Playfair+Display' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
+    <style>
+      h1 {font: 400 60px/1.5 'Playfair Display', Georgia, serif;}
+      p {font: 400 16px/1.6 'Muli', Verdana, Helvetica, sans-serif;}
+    </style>
+  </head>
+  <body>
+    <p id="title">
+    <h3>Cognito IAM POC</h3>
+    </p>
+    <p id="buttonsnboxes">
+      <script>
+        function getIdToken() {
+		  var hash = window.location.hash;
+		  var tokens = hash.substring(1);
+		  var idToken = tokens.split("&")[0].split("=")[1];
+		  
+		  var tokenUrl = window.location.search.substring(1).split("=")[1];
+		  
+		  var userPool = window.location.search.substring(1).split('&')[0].split('=')[0];
+		  var idenPoolId = window.location.search.substring(1).split('&')[0].split('=')[1];
+		  
+		  var cred = getAccessToken(idToken, idenPoolId, userPool);
+		  
+		  //var cred1 = getUnauthToken(idenPoolId);
+		  
+		  document.cookie = "accessToken=" + idToken;
+        }
+      </script>
+	  <script>
+		function getAccessToken(idToken, idenPoolId, userPool) {
+			let region = idenPoolId.split(":")[0];
+			let provider = "cognito-idp." + region + ".amazonaws.com/" + userPool;
+			let login = {};
+			
+			login[provider] = idToken;
+		
+			console.log(provider + ' || ' + idenPoolId);
+		
+			// Add the User's Id Token to the Cognito credentials login map.
+			let credentials = new AWS.CognitoIdentityCredentials({
+				IdentityPoolId: idenPoolId,
+				Logins: login
+			});
+
+			//call refresh method in order to authenticate user and get new temp credentials
+			credentials.get((error) => {
+				if (error) {
+					console.error(error);
+				
+					//let response = {
+					//	statusCode: 500,
+					//	body: JSON.stringify(error)
+					//};
+				
+					return null;
+				
+				} else {
+					console.log('Successfully logged!');
+					console.log('AKI:'+ credentials.accessKeyId);
+					console.log('AKS:'+ credentials.secretAccessKey);
+					console.log('token:' + credentials.sessionToken);
+					
+					document.cookie = "aki=" + credentials.accessKeyId;
+					document.cookie = "aks=" + credentials.secretAccessKey;
+					document.cookie = "token=" + credentials.sessionToken;
+					
+					//window.location.href = "http://localhost:6768/3clogic.html#!/unicorn/app/callCenters/63/numbers";
+				
+					let response = JSON.stringify({
+						'AKI': credentials.accessKeyId,
+						'AKS': credentials.secretAccessKey,
+						'token': credentials.sessionToken
+					});
+				
+					return response;
+				}
+			});
+		}
+	  </script>
+	  <script>
+		function getUnauthToken(idenPoolId) {
+			
+			console.log(idenPoolId);
+		
+			// Add the User's Id Token to the Cognito credentials login map.
+			let credentials = new AWS.CognitoIdentityCredentials({
+				IdentityPoolId: idenPoolId,
+			});
+
+			//call refresh method in order to authenticate user and get new temp credentials
+			credentials.get((error) => {
+				if (error) {
+					console.error(error);
+				
+					//let response = {
+					//	statusCode: 500,
+					//	body: JSON.stringify(error)
+					//};
+				
+					return null;
+				
+				} else {
+					console.log('Unauth AKI:'+ credentials.accessKeyId);
+					console.log('Unauth AKS:'+ credentials.secretAccessKey);
+					console.log('Unauth token:' + credentials.sessionToken);
+					
+					document.cookie = "unauthaki=" + credentials.accessKeyId;
+					document.cookie = "unauthaks=" + credentials.secretAccessKey;
+					document.cookie = "unauthtoken=" + credentials.sessionToken;
+					
+					//window.location.href = "http://localhost:6768/3clogic.html#!/unicorn/app/callCenters/63/numbers";
+				
+					let response = JSON.stringify({
+						'AKI': credentials.accessKeyId,
+						'AKS': credentials.secretAccessKey,
+						'token': credentials.sessionToken
+					});
+				
+					return response;
+				}
+			});
+		}
+	  </script>
+    </p>
+    <p id="results"> 
+    </p>
+    <p id="provarea">
+    </p>
+  </body>
+</html>
+<script>getIdToken()</script>
